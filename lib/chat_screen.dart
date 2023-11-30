@@ -14,9 +14,6 @@ class _ChatScreenState extends State<ChatScreen> {
       appBar: AppBar(
         title: const Text(
           'GPT BOT',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
         ),
       ),
     );
