@@ -33,6 +33,8 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               Flexible(
                 child: ListView.builder(
+                  reverse: true,
+                  itemCount: messages.length,
                   itemBuilder: (BuildContext context, int index) =>
                       messages[index],
                 ),
@@ -57,7 +59,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     suffixIconColor: Colors.amberAccent,
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.send),
-                      onPressed: () {},
+                      onPressed: () => sendMessage(),
                     ),
                   ),
                   controller: _controller,
@@ -68,5 +70,14 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
+  }
+
+  void sendMessage() {
+    ChatMessage _message =
+        ChatMessage(text: _controller.text, sender: 'Vinaya');
+    setState(() {
+      messages.insert(0, _message);
+    });
+    _controller.clear();
   }
 }
