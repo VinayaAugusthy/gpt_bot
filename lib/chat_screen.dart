@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:gpt_bot/chat_message.dart';
 
@@ -11,6 +14,18 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   TextEditingController _controller = TextEditingController();
   List<ChatMessage> messages = [];
+  OpenAI? chatGPT;
+  StreamSubscription? _subscription;
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,10 +88,9 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void sendMessage() {
-    ChatMessage _message =
-        ChatMessage(text: _controller.text, sender: 'Vinaya');
+    ChatMessage message = ChatMessage(text: _controller.text, sender: 'Vinaya');
     setState(() {
-      messages.insert(0, _message);
+      messages.insert(0, message);
     });
     _controller.clear();
   }
