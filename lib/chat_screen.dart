@@ -109,7 +109,8 @@ class _ChatScreenState extends State<ChatScreen> {
               itemBuilder: (BuildContext context, int index) {
                 return ListTile(
                   title: Text(
-                      '${messages[index].sender}: ${messages[index].text}'),
+                    '${messages[index].sender}: ${messages[index].text}',
+                  ),
                 );
               },
             ),
