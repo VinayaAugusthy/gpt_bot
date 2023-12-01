@@ -13,7 +13,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         primarySwatch: Colors.amber,
         appBarTheme: const AppBarTheme(
           color: Colors.amberAccent,
@@ -24,9 +23,8 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: ChatScreen(),
-      debugShowCheckedModeBanner:
-          false, //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
+      home: const ChatScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
