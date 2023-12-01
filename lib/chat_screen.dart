@@ -1,12 +1,10 @@
 // ignore_for_file: library_private_types_in_public_api, avoid_print
 
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import 'chat_message.dart';
 
 class ChatScreen extends StatefulWidget {
