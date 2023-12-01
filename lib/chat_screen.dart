@@ -1,23 +1,34 @@
+// ignore_for_file: library_private_types_in_public_api, avoid_print
+
 import 'dart:async';
 
-import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:flutter/material.dart';
-import 'package:gpt_bot/chat_message.dart';
+import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import 'chat_message.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({Key? key}) : super(key: key);
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  _ChatScreenState createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  TextEditingController _controller = TextEditingController();
+  final TextEditingController _controller = TextEditingController();
   List<ChatMessage> messages = [];
-  OpenAI? chatGPT;
+  late OpenAI? chatGPT;
   StreamSubscription? _subscription;
+
   @override
   void initState() {
+    chatGPT = OpenAI.instance.build(
+      token: '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',
+      baseOption:
+          HttpSetup(receiveTimeout: const Duration(milliseconds: 60000)),
+    );
     super.initState();
   }
 
@@ -27,71 +38,105 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
+  Future<String> getBotResponse(String userMessage) async {
+    const apiKey = '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';
+    const apiUrl = 'https://api.openai.com/v1/engines/davinci/completions';
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'GPT BOT',
-        ),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(
-            top: 10,
-            left: 16,
-            right: 16,
-          ),
-          child: Column(
-            children: [
-              Flexible(
-                child: ListView.builder(
-                  reverse: true,
-                  itemCount: messages.length,
-                  itemBuilder: (BuildContext context, int index) =>
-                      messages[index],
-                ),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              SizedBox(
-                width: size.width,
-                height: size.height * 0.1,
-                child: TextFormField(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                        15,
-                      ),
-                      borderSide: const BorderSide(
-                        color: Colors.amberAccent,
-                        width: 2.0,
-                      ),
-                    ),
-                    suffixIconColor: Colors.amberAccent,
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.send),
-                      onPressed: () => sendMessage(),
-                    ),
-                  ),
-                  controller: _controller,
-                ),
-              )
-            ],
-          ),
-        ),
-      ),
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $apiKey',
+      },
+      body: jsonEncode({
+        'prompt': userMessage,
+        'max_tokens': 50,
+      }),
     );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['choices'][0]['text'];
+    } else {
+      throw Exception('Failed to send message');
+    }
   }
 
-  void sendMessage() {
-    ChatMessage message = ChatMessage(text: _controller.text, sender: 'Vinaya');
+  void sendMessage() async {
+    ChatMessage message = ChatMessage(text: _controller.text, sender: 'User');
     setState(() {
       messages.insert(0, message);
     });
     _controller.clear();
+
+    try {
+      final request = CompleteText(
+        prompt: message.text,
+        model: kTextDavinci3,
+        maxTokens: 200,
+      );
+
+      await Future.delayed(const Duration(seconds: 2));
+
+      _subscription = chatGPT!
+          .build(token: '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')
+          .onCompletionStream(request: request)
+          .listen((response) {
+        print(response!.choices[0].text);
+        getBotResponse(response.choices[0].text).then((botResponse) {
+          ChatMessage botMessage =
+              ChatMessage(text: botResponse, sender: 'Bot');
+          setState(() {
+            messages.insert(0, botMessage);
+          });
+        });
+      });
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('ChatGPT Bot'),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              reverse: true,
+              itemCount: messages.length,
+              itemBuilder: (BuildContext context, int index) {
+                return ListTile(
+                  title: Text(
+                      '${messages[index].sender}: ${messages[index].text}'),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter your message...',
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: sendMessage,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

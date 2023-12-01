@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gpt_bot/chat_screen.dart';
 
-void main() {
+void main() async {
   runApp(const MyApp());
 }
 
@@ -24,8 +24,9 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const ChatScreen(),
-      debugShowCheckedModeBanner: false,
+      home: ChatScreen(),
+      debugShowCheckedModeBanner:
+          false, //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
     );
   }
 }
